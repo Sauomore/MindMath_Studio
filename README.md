@@ -70,3 +70,105 @@
 ```bash
 git clone https://github.com/yourname/hajimi-modeling.git
 cd hajimi-modeling
+```
+
+### 2. 安装依赖
+```bash
+pip install -r requirements.txt
+```
+
+### 3. 运行应用
+```bash
+python app.py
+```
+浏览器自动打开 `http://127.0.0.1:5000` 即可使用。
+
+> **提示**：如果未自动打开，请手动访问该地址。
+
+### 4. （可选）打包为独立 exe
+```bash
+pyinstaller --onefile --add-data "templates;templates" --hidden-import=flask_cors app.py
+```
+生成的 `dist/app.exe` 可脱离 Python 环境运行（首次启动稍慢）。
+
+---
+
+## 📸 界面预览
+
+> 由于 README 无法直接嵌入动态图片，请访问 [项目 Wiki] 或自行运行查看。
+
+| 模块 | 描述 |
+|------|------|
+| 数据工坊 | 可编辑表格、缺失/异常检测、填充工具 |
+| 方程工坊 | 方程库、参数映射、实时预览、线性回归工具 |
+| 结果工坊 | 代数/ODE 图表、PDE 热力图、统计量面板 |
+
+---
+
+## 🧪 使用示例
+
+### 导入数据
+1. 点击 **“导入CSV/TSV”** 选择文件。
+2. 表格自动显示前 100 行，双击单元格可修改数据。
+3. 勾选需要的行（用于后续建模）。
+
+### 拟合线性回归
+1. 进入 **方程工坊** 页面。
+2. 滚动到底部 **线性回归工具**。
+3. 选择模式（如“单列模式”），选择 Y 列（例如“温度”）。
+4. 点击 **“执行线性回归”**，结果自动显示在结果页面。
+
+### 求解微分方程
+1. 在方程库中选择 **“一阶ODE-衰减”**。
+2. 设置参数 k（例如 0.5）。
+3. 点击 **“开始求解”**，结果页面显示曲线和统计量。
+
+---
+
+## 📁 项目结构
+
+```
+hajimi-modeling/
+├── app.py                 # Flask 后端主程序
+├── solver.py              # 代数/ODE/PDE 求解核心
+├── utils.py               # 预设方程库、表达式转换工具
+├── requirements.txt       # Python 依赖列表
+├── templates/
+│   └── index.html         # 前端单页面应用
+└── README.md              # 本文件
+```
+
+---
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request。  
+- 代码风格遵循 PEP 8。
+- 前端修改请确保在 Chrome/Edge 最新版上测试。
+- 新增方程请同时更新 `PRESET_EQUATIONS` 字典。
+
+---
+
+## 📄 许可证
+
+本项目采用 **MIT 许可证**。  
+> 软件仅供学习交流，未经允许不得用于商业用途。版权归原作者所有。
+
+---
+
+## 📧 联系方式
+
+- 官网：[https://www.mindmathstudio.com](https://www.mindmathstudio.com)
+- 问题反馈：请在 GitHub Issues 中提出
+
+---
+
+## 🌟 致谢
+
+- 感谢所有开源项目（Flask, Chart.js, SciPy, scikit-learn）的开发者。
+- 特别感谢“哈基米”精神支持。
+
+**Enjoy modeling! 🧊**
+```
+
+您可以根据实际仓库地址修改其中的 `https://github.com/yourname/hajimi-modeling.git` 以及官网链接。如果需要添加**截图占位符**，可以将 `![截图](screenshots/data.png)` 放入对应位置并创建 `screenshots/` 文件夹。
