@@ -168,7 +168,3 @@ hajimi-modeling/
 - 感谢所有开源项目（Flask, Chart.js, SciPy, scikit-learn）的开发者。
 - 特别感谢“哈基米”精神支持。
 
-**Enjoy modeling! 🧊**
-```
-
-您可以根据实际仓库地址修改其中的 `https://github.com/yourname/hajimi-modeling.git` 以及官网链接。如果需要添加**截图占位符**，可以将 `![截图](screenshots/data.png)` 放入对应位置并创建 `screenshots/` 文件夹。
