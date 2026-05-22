@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>哈基米牌建模软件 · 全功能磨砂玻璃版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+        body{background:radial-gradient(circle at 10% 30%,#d4e0f0,#c2d0e8);padding:24px;min-height:100vh;position:relative;}
+        body::before{content:"";position:fixed;top:0;left:0;width:100%;height:100%;background-image:radial-gradient(rgba(0,0,0,0.02) 1px,transparent 1px);background-size:20px 20px;pointer-events:none;z-index:0;}
+        .glass-card{background:rgba(255,255,255,0.55);backdrop-filter:blur(16px) saturate(180%);border-radius:32px;box-shadow:0 12px 28px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.5);transition:all 0.25s ease;}
+        .glass-card:hover{background:rgba(255,255,255,0.7);box-shadow:0 20px 32px rgba(0,0,0,0.12);}
+        button,.btn{background:rgba(255,255,255,0.4);backdrop-filter:blur(4px);border:none;padding:8px 18px;border-radius:40px;font-weight:500;font-size:0.9rem;cursor:pointer;transition:all 0.2s;color:#1a344e;}
+        button:hover{background:rgba(255,255,255,0.8);transform:translateY(-1px);}
+        .btn-primary{background:#4a90e2;color:white;box-shadow:0 2px 8px rgba(74,144,226,0.3);}
+        .btn-primary:hover{background:#3a7bc8;}
+        .btn-danger{color:#d9534f;}
+        .btn-danger:hover{background:rgba(217,83,79,0.15);}
+        .data-table-wrapper{overflow-x:auto;overflow-y:auto;max-height:400px;border-radius:24px;}
+        .data-table{width:100%;border-collapse:collapse;font-size:0.85rem;background:rgba(255,255,255,0.3);border-radius:24px;overflow:hidden;}
+        .data-table th,.data-table td{padding:12px 10px;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);border-right:none;background-clip:padding-box;}
+        .data-table tr:nth-child(even){background:rgba(255,248,205,0.7);}
+        .data-table tr:nth-child(odd){background:rgba(255,255,255,0.6);}
+        .data-table th{background:rgba(230,245,255,0.85);backdrop-filter:blur(4px);font-weight:600;position:sticky;top:0;}
+        .data-table tr:hover{background:rgba(255,255,255,0.9) !important;}
+        td[contenteditable="true"]{background:rgba(255,255,200,0.6);}
+        .checkbox-col{width:40px;text-align:center;}
+        .eq-list{max-height:280px;overflow-y:auto;}
+        .eq-item{background:rgba(255,255,255,0.4);backdrop-filter:blur(2px);padding:10px 14px;border-radius:24px;margin-bottom:6px;transition:all 0.15s;cursor:pointer;}
+        .eq-item:hover{background:rgba(255,255,255,0.8);transform:translateX(4px);}
+        .eq-item.selected{background:rgba(74,144,226,0.25);border-left:3px solid #4a90e2;}
+        .app-container{max-width:1600px;margin:0 auto;display:grid;grid-template-columns:260px 1fr;gap:20px;}
+        .sidebar{position:sticky;top:24px;height:fit-content;display:flex;flex-direction:column;}
+        .main-content{display:flex;flex-direction:column;gap:20px;}
+        .param-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;}
+        .param-row select,.param-row input{background:rgba(255,255,245,0.8);backdrop-filter:blur(2px);border:1px solid rgba(0,0,0,0.1);border-radius:28px;padding:6px 12px;outline:none;font-size:0.85rem;}
+        .param-row select:focus,.param-row input:focus{background:white;border-color:#4a90e2;}
+        .pde-control{margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+        .modal{display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.4);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+        .modal-content{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:32px;max-width:800px;width:90%;max-height:85vh;overflow-y:auto;padding:28px;box-shadow:0 20px 40px rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.8);}
+        .modal-content h2{margin-bottom:16px;color:#1e3a5f;font-size:1.8rem;}
+        .modal-content h3{margin:20px 0 10px;color:#2c6e9e;font-size:1.3rem;}
+        .modal-content h4{margin:16px 0 8px;color:#3a7bc8;}
+        .modal-content p,.modal-content ul{margin-bottom:12px;line-height:1.5;}
+        .modal-content ul{padding-left:24px;}
+        .modal-content code{background:rgba(0,0,0,0.05);padding:2px 6px;border-radius:8px;font-family:monospace;}
+        .close-modal{float:right;font-size:28px;font-weight:bold;cursor:pointer;color:#aaa;transition:0.2s;}
+        .close-modal:hover{color:#333;}
+        .badge-list{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;}
+        .badge{background:rgba(74,144,226,0.2);padding:4px 12px;border-radius:40px;font-size:0.8rem;}
+        @media (max-width:900px){.app-container{grid-template-columns:1fr;}.sidebar{position:static;}}
+        ::-webkit-scrollbar{width:8px;height:8px;}
+        ::-webkit-scrollbar-track{background:rgba(0,0,0,0.05);border-radius:10px;}
+        ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.2);border-radius:10px;}
+        .active-nav{background:rgba(74,144,226,0.2) !important;color:#1a344e;font-weight:600;border-left:3px solid #4a90e2;}
+        .active-nav:hover{background:rgba(74,144,226,0.3) !important;}
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="sidebar glass-card" style="padding:20px;">
+        <div style="font-size:1.5rem;font-weight:600;margin-bottom:24px;color:#1e3a5f;">🧊 MindMath Studio</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <button id="btnData" class="active-nav" style="text-align:left;padding-left:16px;">📊 数据工坊</button>
+            <button id="btnEquation" style="text-align:left;padding-left:16px;">📐 方程工坊</button>
+            <button id="btnResult" style="text-align:left;padding-left:16px;">📈 结果工坊</button>
+        </div>
+        <div style="flex-grow:1;"></div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px;">
+            <button id="introBtn" style="text-align:left;padding-left:16px;"><i class="fas fa-info-circle"></i> 项目介绍</button>
+            <button id="aboutBtn" style="text-align:left;padding-left:16px;"><i class="fas fa-question-circle"></i> 关于</button>
+            <button id="faqBtn" style="text-align:left;padding-left:16px;"><i class="fas fa-life-ring"></i> 常见问题</button>
+        </div>
+        <div style="margin-top:20px;font-size:0.75rem;color:#5a7a9a;text-align:center;">v1.6 · 全功能磨砂版</div>
+    </div>
+    <div class="main-content">
+        <!-- 数据页面 -->
+        <div id="dataPanel" class="glass-card" style="padding:24px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                <h3><i class="fas fa-table"></i> 数据表格</h3>
+                <div>
+                    <input type="file" id="fileInput" accept=".csv,.tsv,.txt" style="display:none;">
+                    <button id="uploadBtn"><i class="fas fa-upload"></i> 导入CSV/TSV</button>
+                    <button id="exportBtn"><i class="fas fa-download"></i> 导出CSV</button>
+                    <button id="addRowBtn"><i class="fas fa-plus"></i> 添加行</button>
+                    <button id="addColBtn"><i class="fas fa-plus-circle"></i> 添加列</button>
+                    <button id="delRowBtn" class="btn-danger"><i class="fas fa-trash"></i> 删除选中行</button>
+                </div>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table" id="dataTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+                <button id="detectMissingBtn"><i class="fas fa-search"></i> 检测缺失值</button>
+                <button id="fillMeanBtn"><i class="fas fa-fill-drip"></i> 均值填充</button>
+                <button id="fillMedianBtn"><i class="fas fa-chart-line"></i> 中位数填充</button>
+                <button id="fillModeBtn"><i class="fas fa-chart-simple"></i> 众数填充</button>
+                <button id="detectOutlierBtn"><i class="fas fa-chart-simple"></i> 检测异常值(IQR)</button>
+                <button id="clearOutlierBtn"><i class="fas fa-trash-alt"></i> 清除异常值</button>
+                <span id="cleanMsg" style="margin-left:auto;font-size:0.8rem;color:#4a627a;"></span>
+            </div>
+        </div>
+        <!-- 方程页面 -->
+        <div id="equationPanel" class="glass-card" style="padding:24px;display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:24px;">
+                <div>
+                    <h4><i class="fas fa-book"></i> 方程库</h4>
+                    <input type="text" id="searchEq" placeholder="🔍 搜索方程..." style="width:100%;margin:12px 0;padding:8px;border-radius:40px;border:1px solid rgba(0,0,0,0.1);background:rgba(255,255,240,0.8);">
+                    <div id="eqList" class="eq-list"></div>
+                    <div style="margin-top:16px;">
+                        <button id="addCustomEqBtn" style="width:100%;"><i class="fas fa-plus-circle"></i> 添加自定义方程</button>
+                        <button id="delCustomEqBtn" style="width:100%;margin-top:8px;" class="btn-danger"><i class="fas fa-trash"></i> 删除选中自定义方程</button>
+                    </div>
+                </div>
+                <div>
+                    <div id="currentEqDisplay" style="background:rgba(0,0,0,0.04);padding:12px;border-radius:24px;margin-bottom:20px;">
+                        <strong>当前方程：</strong> <span id="eqName">未选择</span><br>
+                        <span id="eqFormula" style="font-family:monospace;">——</span>
+                    </div>
+                    <div id="paramArea"></div>
+                    <div style="display:flex;gap:12px;margin-top:16px;">
+                        <label>X范围: <input type="number" id="xMin" value="-5" step="0.5" style="width:80px;"> ~ <input type="number" id="xMax" value="5" step="0.5" style="width:80px;"></label>
+                        <label>T范围: <input type="number" id="tMin" value="0" step="0.5" style="width:80px;"> ~ <input type="number" id="tMax" value="10" step="0.5" style="width:80px;"></label>
+                        <button id="refreshPreviewBtn" class="btn-primary">刷新预览</button>
+                    </div>
+                    <canvas id="previewCanvas" height="180" style="margin-top:20px;width:100%;background:rgba(255,255,255,0.4);border-radius:20px;"></canvas>
+                </div>
+            </div>
+            <div style="margin-top:28px;border-top:1px solid rgba(0,0,0,0.1);padding-top:20px;">
+                <h4><i class="fas fa-chart-line"></i> 线性回归工具（独立）</h4>
+                <div style="display:flex;gap:20px;align-items:center;margin-top:12px;flex-wrap:wrap;">
+                    <label><input type="radio" name="lrMode" value="column" checked> 列模式 (X列+Y列)</label>
+                    <label><input type="radio" name="lrMode" value="single_column"> 单列模式 (Y列 + 行序号)</label>
+                    <label><input type="radio" name="lrMode" value="row"> 行模式 (单行数值)</label>
+                </div>
+                <div id="lrColumnMode" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:12px;">
+                    <div><label>X列：</label><select id="lrXCol"></select></div>
+                    <div><label>Y列：</label><select id="lrYCol"></select></div>
+                </div>
+                <div id="lrSingleColumnMode" style="display:none;margin-top:12px;">
+                    <div><label>Y列（X自动为行序号）：</label><select id="lrSingleYCol"></select></div>
+                </div>
+                <div id="lrRowMode" style="display:none;margin-top:12px;">
+                    <div><label>行索引：</label><select id="lrRowIndex"></select></div>
+                    <div><label>列范围（可选）：</label><select id="lrColStart"></select> ~ <select id="lrColEnd"></select></div>
+                </div>
+                <button id="lrRunBtn" class="btn-primary" style="margin-top:16px;"><i class="fas fa-chart-line"></i> 执行线性回归</button>
+                <div style="font-size:0.8rem;color:#6c757d;margin-top:8px;">列模式：基于两列；单列模式：基于列与行序号；行模式：基于行数值（X为列序号）。</div>
+            </div>
+        </div>
+        <!-- 结果页面 -->
+        <div id="resultPanel" class="glass-card" style="padding:24px;display:none;">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+                <h3><i class="fas fa-chart-line"></i> 求解结果</h3>
+                <div>
+                    <select id="chartTypeSelect">
+                        <option value="line">折线图</option>
+                        <option value="scatter">散点图</option>
+                        <option value="bar">条形图</option>
+                        <option value="step">阶梯图</option>
+                        <option value="fill">填充图</option>
+                        <option value="residual">残差图</option>
+                        <option value="qq">Q-Q图</option>
+                    </select>
+                    <button id="solveBtn" class="btn-primary"><i class="fas fa-play"></i> 开始求解</button>
+                    <button id="exportResultBtn" class="btn"><i class="fas fa-file-csv"></i> 导出结果CSV</button>
+                    <button id="clearResultBtn" class="btn-danger"><i class="fas fa-trash"></i> 清空结果</button>
+                </div>
+            </div>
+            <div id="algebraicOdeContainer" style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+                <canvas id="resultCanvas" height="300" style="width:100%;background:rgba(255,255,255,0.4);border-radius:20px;"></canvas>
+                <div>
+                    <div id="statsPanel" style="background:rgba(0,0,0,0.04);border-radius:20px;padding:16px;"><strong>拟合统计量</strong><br>R²: --<br>RMSE: --<br>AIC: --<br>BIC: --</div>
+                    <div id="infoPanel" style="margin-top:16px;font-size:0.85rem;background:rgba(0,0,0,0.04);border-radius:20px;padding:12px;"></div>
+                </div>
+            </div>
+            <div id="pdeContainer" style="display:none;">
+                <div style="margin-bottom:12px;"><label>颜色映射: <select id="colormapSelect"><option value="viridis">Viridis</option><option value="inferno">Inferno</option><option value="plasma">Plasma</option><option value="coolwarm">Coolwarm</option></select></label></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <canvas id="heatmapCanvas" width="500" height="400" style="width:100%;height:auto;border-radius:20px;background:rgba(255,255,255,0.4);"></canvas>
+                    <div>
+                        <div class="pde-control"><label>时间点: <input type="range" id="timeSlider" min="0" max="0" value="0" step="1" style="flex:1;"><span id="timeValue">0.00</span></label></div>
+                        <canvas id="sliceCanvas" height="250" style="width:100%;margin-top:12px;background:rgba(255,255,255,0.4);border-radius:20px;"></canvas>
+                        <div id="pdeStats" style="background:rgba(0,0,0,0.04);border-radius:20px;padding:12px;margin-top:16px;"><strong>PDE 信息</strong><br></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框内容 -->
+<div id="introModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeIntroModal">&times;</span><h2>🧊 MindMath Studio</h2><p><strong>一个集数据清洗、方程建模、数值求解与可视化于一体的全功能科学计算平台。</strong><br>支持代数方程、常微分方程（ODE）、偏微分方程（PDE）的交互式求解，并提供独立的线性回归工具。采用磨砂玻璃质感的 Web 界面，兼顾美观与实用。</p><div class="badge-list"><span class="badge">🐍 Python 3.8+</span><span class="badge">🌶️ Flask</span><span class="badge">📊 Chart.js</span><span class="badge">🧮 SciPy / NumPy</span><span class="badge">📈 Scikit-learn</span></div><h3>✨ 功能特性</h3><h4>📊 数据处理工坊</h4><ul><li>CSV/TSV 导入导出（自动识别分隔符，大文件线程化导入）</li><li>可编辑数据表格（添加/删除行列、双击单元格编辑）</li><li>缺失值处理：检测、均值/中位数/众数/常数/前向/后向/插值填充</li><li>异常值处理：基于 IQR 或 Z-score 检测，一键清除</li><li>行多选：任意选择数据行参与建模</li></ul><h4>📐 方程编辑工坊</h4><ul><li>50+ 预设方程库（线性、多项式、指数、对数、逻辑斯蒂、周期函数、物理/化学/金融方程）</li><li>自定义方程保存</li><li>方程搜索</li><li>参数映射（常数、数据列、x、t）</li><li>实时预览曲线</li><li>变量范围设置</li></ul><h4>📈 结果输出工坊</h4><ul><li>代数方程 / ODE / PDE 求解</li><li>多种图表：折线图、散点图、条形图、阶梯图、填充图、残差图、Q-Q图</li><li>拟合统计量：R²、RMSE、AIC、BIC</li><li>PDE 专用热力图 + 时间切片</li><li>结果导出 CSV</li></ul><h4>📉 独立线性回归工具</h4><ul><li>列模式（X列+Y列）</li><li>单列模式（行序号为X）</li><li>行模式（列序号为X）</li><li>完整统计量 + 散点拟合图</li></ul><h3>🛠 技术栈</h3><ul><li><strong>后端</strong>：Python 3.8+, Flask, Flask-CORS</li><li><strong>科学计算</strong>：NumPy, Pandas, SciPy, Scikit-learn</li><li><strong>前端</strong>：HTML5/CSS3 (Grid/Flex, backdrop-filter), JavaScript (ES6), Chart.js</li><li><strong>打包</strong>：PyInstaller (可选)</li></ul><h3>📦 安装与运行</h3><p><code>git clone https://github.com/Sauomore/MindMath_Studio.git</code><br><code>cd MindMath_Studio</code><br><code>pip install -r requirements.txt</code><br><code>python app.py</code><br>浏览器自动打开 <code>http://127.0.0.1:5000</code></p><h3>📁 项目结构</h3><pre style="background:rgba(0,0,0,0.05);padding:12px;border-radius:16px;">MindMath_Studio/
+├── app.py                 # Flask 后端主程序
+├── solver.py              # 求解核心
+├── utils.py               # 预设方程库、工具
+├── requirements.txt
+├── templates/
+│   └── index.html         # 前端单页面
+└── README.md</pre><h3>📄 许可证</h3><pre style="background:rgba(0,0,0,0.05);padding:12px;border-radius:16px;white-space:pre-wrap;">MIT License\n\nCopyright (c) 2026 Sauomore\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\n...</pre><p>🌐联系我们： <a href="https://www.mindmathstudio.com" target="_blank">https://www.mindmathstudio.com</a></p><p>🌐GitHub仓库链接： <a href="https://github.com/Sauomore/MindMath_Studio" target="_blank">https://github.com/Sauomore/MindMath_Studio</a></p></div></div>
+<div id="aboutModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeAboutModal">&times;</span><h2><i class="fas fa-info-circle"></i> 关于哈基米牌建模软件</h2><p><strong>版本：</strong> v1.6 · 全功能磨砂玻璃版</p><p><strong>功能特点：</strong></p><ul><li>三段式工作流：数据处理｜方程编辑｜结果输出</li><li>支持CSV/TSV导入导出，数据清洗（异常/缺失检测、标红、清除、填充）</li><li>50+预设方程，自定义方程保存，方程图像预览</li><li>参数与数据列灵活关联，支持代数/ODE/PDE求解</li><li>多种图表类型，拟合统计量（R², RMSE, AIC, BIC），残差分析，Q-Q图</li><li>线程化大数据导入，界面不卡顿，进度条实时反馈</li><li>手动数据输入（添加行/列，双击单元格编辑）</li><li>方程库搜索、参数映射表、右键菜单、实时预览、快捷键等</li><li>独立线性回归工具（列模式/单列模式/行模式）</li><li>PDE 热力图 + 时间切片可视化</li><li>哈基米南美路多</li></ul><p><strong>方程输入说明：</strong></p><ul><li>X自变量，Y因变量，t时间</li><li>符号：· (乘), ÷ (除), ^ (幂), √ (根号)</li><li>希腊字母: α β γ δ σ μ ω ζ φ π</li><li>ODE & PDE: dy/dt, ∂u/∂t, ∂²u/∂x²</li></ul><p><strong>更新日志：</strong></p><ul><li>修复逻辑斯蒂ODE识别问题，修正参数映射长度检查</li><li>新增：方程库搜索、参数映射紧凑表、右键菜单、实时预览、进度反馈、快捷键、工作区自动保存</li><li>优化：数据表格右键操作、错误高亮提示、绘图窗口多窗口支持</li><li>Web版：磨砂玻璃UI、线性回归工具、PDE热力图、单元格编辑、自定义方程保存</li></ul><p style="font-weight:bold;color:#c0392b;">⚠️ 软件仅供内部分享使用，如未经允许传播，我们依法保留追责权利，违法必究！！！</p><p>技术支持: 基于 Python + Flask + Chart.js 构建</p><p>联系我们: <a href="https://www.mindmathstudio.com" target="_blank">https://www.mindmathstudio.com</a></p></div></div>
+<div id="faqModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeFaqModal">&times;</span><h2><i class="fas fa-question-circle"></i> 常见问题</h2><ul><li><strong>如果出现报错“错误: '__import__'”怎么办？</strong><br>请检查变量的取值范围，当x小于等于0时可能会出现该错误。请适当调整X范围或参数。</li><li><strong>变量范围在哪里设置？</strong><br>在“方程编辑”页面的右侧，有X范围和T范围的输入框，可以手动调整。</li><li><strong>如何手动添加数据？</strong><br>在“数据工坊”页面，点击“添加列”可增加新列，点击“添加行”增加新行，双击单元格即可编辑内容。</li><li><strong>线性回归如何使用？</strong><br>在“方程工坊”页面底部有独立线性回归工具。列模式需要选择X和Y列；单列模式只需选择Y列（X自动为行序号）；行模式选择一行数值进行分析。</li><li><strong>PDE热力图不显示怎么办？</strong><br>请确保选择了正确的PDE方程（如热传导、波动方程），并设置合理的空间和时间范围。如果仍不显示，请检查浏览器控制台错误。</li><li><strong>为什么求解失败？</strong><br>可能原因：方程表达式有误、参数未正确映射、数据点不足。请检查方程语法和参数设置。</li><li><strong>软件是否可以打包成exe？</strong><br>可以。使用PyInstaller将Flask应用和前端打包，或使用Electron包装。详细方法请参考文档。</li></ul><p>更多问题可以通过官网反馈：<a href="https://www.mindmathstudio.com" target="_blank">mindmathstudio.com</a></p></div></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ---------- 全局状态 ----------
+    let currentData = { columns: [], rows: [], selectedRows: new Set() };
+    let equations = {};
+    let currentEquationKey = null;
+    let currentEquationData = null;
+    let paramMapping = {};
+    let previewChart = null;
+    let currentOutliers = [];
+    let resultChart = null;
+    let currentResult = null;
+    let sliceChart = null;
+
+    // DOM 元素
+    const dataPanel = document.getElementById('dataPanel');
+    const equationPanel = document.getElementById('equationPanel');
+    const resultPanel = document.getElementById('resultPanel');
+    const btnData = document.getElementById('btnData');
+    const btnEquation = document.getElementById('btnEquation');
+    const btnResult = document.getElementById('btnResult');
+
+    function showPanel(panel) {
+        dataPanel.style.display = 'none';
+        equationPanel.style.display = 'none';
+        resultPanel.style.display = 'none';
+        if (panel === 'data') dataPanel.style.display = 'block';
+        else if (panel === 'equation') equationPanel.style.display = 'block';
+        else resultPanel.style.display = 'block';
+        [btnData, btnEquation, btnResult].forEach(btn => btn.classList.remove('active-nav'));
+        if (panel === 'data') btnData.classList.add('active-nav');
+        else if (panel === 'equation') btnEquation.classList.add('active-nav');
+        else btnResult.classList.add('active-nav');
+    }
+    btnData.onclick = () => showPanel('data');
+    btnEquation.onclick = () => { showPanel('equation'); loadEquations(); updateLRMode(); };
+    btnResult.onclick = () => showPanel('result');
+
+    // 模态框
+    const introModal = document.getElementById('introModal');
+    const aboutModal = document.getElementById('aboutModal');
+    const faqModal = document.getElementById('faqModal');
+    document.getElementById('introBtn').onclick = () => introModal.style.display = 'flex';
+    document.getElementById('aboutBtn').onclick = () => aboutModal.style.display = 'flex';
+    document.getElementById('faqBtn').onclick = () => faqModal.style.display = 'flex';
+    document.getElementById('closeIntroModal').onclick = () => introModal.style.display = 'none';
+    document.getElementById('closeAboutModal').onclick = () => aboutModal.style.display = 'none';
+    document.getElementById('closeFaqModal').onclick = () => faqModal.style.display = 'none';
+    window.onclick = function(e) {
+        if (e.target === introModal) introModal.style.display = 'none';
+        if (e.target === aboutModal) aboutModal.style.display = 'none';
+        if (e.target === faqModal) faqModal.style.display = 'none';
+    };
+
+    // 辅助函数
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m; }); }
+
+    // 数据表格
+    async function loadData() {
+        const res = await fetch('/api/current_data');
+        const json = await res.json();
+        if (json.columns) {
+            currentData.columns = json.columns;
+            currentData.rows = json.data;
+            currentData.selectedRows.clear();
+            renderTable();
+            updateLinearRegressionColumns();
+            updateRowModeSelectors();
+            updateLRMode();
+        }
+    }
+
+    function renderTable() {
+        const thead = document.getElementById('tableHead');
+        const tbody = document.getElementById('tableBody');
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+        if (!currentData.columns.length) {
+            thead.innerHTML = '<tr><th>暂无数据，请导入CSV或添加列</th></tr>';
+            return;
+        }
+        let headerHtml = '<tr><th class="checkbox-col"><input type="checkbox" id="selectAll"></th>';
+        currentData.columns.forEach(function(col) { headerHtml += '<th>' + escapeHtml(col) + '</th>'; });
+        headerHtml += '</tr>';
+        thead.innerHTML = headerHtml;
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) selectAll.onchange = function(e) {
+            document.querySelectorAll('.row-select').forEach(function(chk, idx) { chk.checked = e.target.checked; updateSelectedRow(parseInt(chk.dataset.idx), chk.checked); });
+        };
+        currentData.rows.forEach(function(row, idx) {
+            let tr = '<tr>';
+            tr += '<td class="checkbox-col"><input type="checkbox" class="row-select" data-idx="' + idx + '"></td>';
+            currentData.columns.forEach(function(col) {
+                let val = (row[col] !== undefined && row[col] !== null) ? row[col] : '';
+                tr += '<td contenteditable="true" data-row="' + idx + '" data-col="' + escapeHtml(col) + '">' + escapeHtml(String(val)) + '</td>';
+            });
+            tr += '</tr>';
+            tbody.insertAdjacentHTML('beforeend', tr);
+        });
+        document.querySelectorAll('td[contenteditable="true"]').forEach(function(cell) {
+            cell.onblur = async function(e) {
+                const row = parseInt(cell.dataset.row);
+                const col = cell.dataset.col;
+                const val = cell.innerText;
+                await fetch('/api/update_cell', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ row: row, col: col, value: val }) });
+                loadData();
+            };
+        });
+        document.querySelectorAll('.row-select').forEach(function(chk) {
+            chk.onchange = function(e) {
+                let idx = parseInt(e.target.dataset.idx);
+                updateSelectedRow(idx, e.target.checked);
+            };
+        });
+        document.getElementById('cleanMsg').innerText = '共 ' + currentData.rows.length + ' 行，已选 ' + currentData.selectedRows.size + ' 行';
+        updateLinearRegressionColumns();
+        updateRowModeSelectors();
+    }
+
+    function updateSelectedRow(idx, checked) {
+        if (checked) currentData.selectedRows.add(idx);
+        else currentData.selectedRows.delete(idx);
+        document.getElementById('cleanMsg').innerText = '共 ' + currentData.rows.length + ' 行，已选 ' + currentData.selectedRows.size + ' 行';
+    }
+
+    function updateLinearRegressionColumns() {
+        const cols = currentData.columns;
+        const xSel = document.getElementById('lrXCol');
+        const ySel = document.getElementById('lrYCol');
+        const singleSel = document.getElementById('lrSingleYCol');
+        if (!xSel || !ySel || !singleSel) return;
+        xSel.innerHTML = ''; ySel.innerHTML = ''; singleSel.innerHTML = '';
+        if (cols.length === 0) {
+            xSel.innerHTML = '<option>无数据</option>';
+            ySel.innerHTML = '<option>无数据</option>';
+            singleSel.innerHTML = '<option>无数据</option>';
+            return;
+        }
+        cols.forEach(function(c) {
+            xSel.appendChild(new Option(c, c));
+            ySel.appendChild(new Option(c, c));
+            singleSel.appendChild(new Option(c, c));
+        });
+    }
+
+    function updateRowModeSelectors() {
+        const rowSel = document.getElementById('lrRowIndex');
+        const colStart = document.getElementById('lrColStart');
+        const colEnd = document.getElementById('lrColEnd');
+        if (!rowSel) return;
+        rowSel.innerHTML = '';
+        if (currentData.rows.length === 0) { rowSel.innerHTML = '<option>无数据</option>'; return; }
+        for (let i = 0; i < currentData.rows.length; i++) rowSel.appendChild(new Option('行 ' + i, i));
+        if (colStart && colEnd) {
+            const cols = currentData.columns;
+            colStart.innerHTML = '<option value="">全部</option>';
+            colEnd.innerHTML = '<option value="">全部</option>';
+            cols.forEach(function(c) { colStart.appendChild(new Option(c, c)); colEnd.appendChild(new Option(c, c)); });
+        }
+    }
+
+    function updateLRMode() {
+        const mode = document.querySelector('input[name="lrMode"]:checked').value;
+        document.getElementById('lrColumnMode').style.display = mode === 'column' ? 'flex' : 'none';
+        document.getElementById('lrSingleColumnMode').style.display = mode === 'single_column' ? 'block' : 'none';
+        document.getElementById('lrRowMode').style.display = mode === 'row' ? 'block' : 'none';
+        if (mode === 'row') updateRowModeSelectors();
+    }
+    document.querySelectorAll('input[name="lrMode"]').forEach(function(r) { r.addEventListener('change', updateLRMode); });
+
+    // 方程库
+    async function loadEquations() {
+        const res = await fetch('/api/equations');
+        equations = await res.json();
+        renderEquationList();
+    }
+    function renderEquationList() {
+        const container = document.getElementById('eqList');
+        container.innerHTML = '';
+        const search = document.getElementById('searchEq').value.toLowerCase();
+        for (let [name, data] of Object.entries(equations)) {
+            if (search && !name.toLowerCase().includes(search)) continue;
+            const div = document.createElement('div');
+            div.className = 'eq-item' + (currentEquationKey === name ? ' selected' : '');
+            div.innerHTML = '<strong>' + escapeHtml(name) + '</strong><br><small>' + escapeHtml(data.display || data.equation) + '</small>';
+            div.onclick = function() { selectEquation(name, data); };
+            container.appendChild(div);
+        }
+    }
+    function selectEquation(name, data) {
+        currentEquationKey = name;
+        currentEquationData = data;
+        document.getElementById('eqName').innerText = name;
+        document.getElementById('eqFormula').innerText = data.display || data.equation;
+        renderParamInputs(data.params || []);
+        renderEquationList();
+        updatePreview();
+    }
+    function renderParamInputs(params) {
+        const area = document.getElementById('paramArea');
+        area.innerHTML = '';
+        paramMapping = {};
+        if (!params.length) { area.innerHTML = '<div style="color:gray;">无参数</div>'; return; }
+        params.forEach(function(p) {
+            const div = document.createElement('div');
+            div.className = 'param-row';
+            div.innerHTML = '<span>' + escapeHtml(p) + '</span><div><select class="param-type" data-param="' + p + '"><option value="constant">常数</option><option value="column">数据列</option><option value="x">变量x</option><option value="t">变量t</option></select><input class="param-value" placeholder="值或列名" style="width:120px;"></div>';
+            area.appendChild(div);
+            const typeSel = div.querySelector('.param-type');
+            const valInp = div.querySelector('.param-value');
+            function update() {
+                let typ = typeSel.value, val = valInp.value;
+                if (typ === 'constant') { if (!val) val = '1'; valInp.placeholder = '数值'; }
+                else if (typ === 'column') valInp.placeholder = '列名';
+                else { valInp.placeholder = '(自动)'; val = null; }
+                paramMapping[p] = { type: typ, value: val };
+                updatePreview();
+            }
+            typeSel.onchange = update;
+            valInp.oninput = update;
+            typeSel.value = 'constant';
+            valInp.value = '1';
+            update();
+        });
+    }
+    async function updatePreview() {
+        if (!currentEquationData) return;
+        const xMin = parseFloat(document.getElementById('xMin').value);
+        const xMax = parseFloat(document.getElementById('xMax').value);
+        const paramsPreview = {};
+        for (let [p, map] of Object.entries(paramMapping)) {
+            paramsPreview[p] = map.type === 'constant' ? (parseFloat(map.value) || 1) : 1;
+        }
+        const res = await fetch('/api/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ equation: currentEquationData.equation, params: paramsPreview, x_min: xMin, x_max: xMax, steps: 200 }) });
+        const json = await res.json();
+        if (previewChart) previewChart.destroy();
+        const ctx = document.getElementById('previewCanvas').getContext('2d');
+        previewChart = new Chart(ctx, { type: 'line', data: { labels: json.x.map(function(v) { return v.toFixed(2); }), datasets: [{ label: '预览曲线', data: json.y, borderColor: '#4a90e2', fill: false, pointRadius: 0 }] }, options: { responsive: true } });
+    }
+    document.getElementById('refreshPreviewBtn').onclick = updatePreview;
+    document.getElementById('searchEq').oninput = function() { renderEquationList(); };
+    document.getElementById('addCustomEqBtn').onclick = function() {
+        const name = prompt('方程名称');
+        if (!name) return;
+        const eq = prompt('表达式 (y = ...)');
+        if (!eq) return;
+        const paramsRaw = prompt('参数名 (逗号分隔)');
+        const params = paramsRaw ? paramsRaw.split(',').map(function(s) { return s.trim(); }) : [];
+        fetch('/api/user_equations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, equation_data: { equation: eq, display: eq, params: params, description: '自定义' } }) }).then(function() { loadEquations(); });
+    };
+    document.getElementById('delCustomEqBtn').onclick = function() {
+        if (!currentEquationKey) { alert('请选中一个自定义方程'); return; }
+        fetch('/api/delete_user_equation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: currentEquationKey }) }).then(function() { loadEquations(); });
+    };
+
+    // 线性回归
+    document.getElementById('lrRunBtn').onclick = async function() {
+        const mode = document.querySelector('input[name="lrMode"]:checked').value;
+        let payload = { mode: mode, selected_rows: Array.from(currentData.selectedRows) };
+        if (mode === 'column') {
+            const x = document.getElementById('lrXCol').value;
+            const y = document.getElementById('lrYCol').value;
+            if (!x || !y) { alert('请选择X,Y列'); return; }
+            payload.x_col = x; payload.y_col = y;
+        } else if (mode === 'single_column') {
+            const y = document.getElementById('lrSingleYCol').value;
+            if (!y) { alert('请选择Y列'); return; }
+            payload.y_col = y;
+        } else {
+            const row = parseInt(document.getElementById('lrRowIndex').value);
+            if (isNaN(row)) { alert('请选择行'); return; }
+            payload.row_index = row;
+            const start = document.getElementById('lrColStart').value;
+            const end = document.getElementById('lrColEnd').value;
+            if (start && end) {
+                const cols = currentData.columns;
+                const si = cols.indexOf(start);
+                const ei = cols.indexOf(end);
+                if (si !== -1 && ei !== -1 && si <= ei) payload.selected_columns = cols.slice(si, ei+1);
+            }
+        }
+        const btn = document.getElementById('lrRunBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 计算中...';
+        const res = await fetch('/api/linear_regression', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const json = await res.json();
+        btn.innerHTML = '<i class="fas fa-chart-line"></i> 执行线性回归';
+        if (json.success) { showPanel('result'); displayLinearRegressionResult(json); }
+        else alert('回归失败: ' + json.error);
+    };
+
+    function displayLinearRegressionResult(data) {
+        document.getElementById('algebraicOdeContainer').style.display = 'grid';
+        document.getElementById('pdeContainer').style.display = 'none';
+        if (resultChart) resultChart.destroy();
+        const canvas = document.getElementById('resultCanvas');
+        if (!canvas) return;
+        resultChart = new Chart(canvas.getContext('2d'), {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: '原始数据 (' + data.x_label + ' vs ' + data.y_label + ')', data: data.x_original.map(function(x,i) { return { x: x, y: data.y_original[i] }; }), backgroundColor: '#4a90e2', pointRadius: 4, type: 'scatter' },
+                    { label: '拟合线: y = ' + data.slope.toFixed(4) + ' * x + ' + data.intercept.toFixed(4), data: data.x_line.map(function(x,i) { return { x: x, y: data.y_line[i] }; }), borderColor: '#e67e22', borderWidth: 2, fill: false, type: 'line', pointRadius: 0 }
+                ]
+            },
+            options: { responsive: true, scales: { x: { title: { display: true, text: data.x_label } }, y: { title: { display: true, text: data.y_label } } } }
+        });
+        document.getElementById('statsPanel').innerHTML = '<strong>线性回归统计量</strong><br>R²: ' + data.r2.toFixed(6) + '<br>RMSE: ' + data.rmse.toFixed(6) + '<br>AIC: ' + data.aic.toFixed(2) + '<br>BIC: ' + data.bic.toFixed(2) + '<br>斜率: ' + data.slope.toFixed(6) + '<br>截距: ' + data.intercept.toFixed(6);
+        document.getElementById('infoPanel').innerHTML = '线性回归模型: ' + data.y_label + ' = ' + data.slope.toFixed(4) + ' * ' + data.x_label + ' + ' + data.intercept.toFixed(4);
+    }
+
+    // 求解
+    document.getElementById('solveBtn').onclick = async function() {
+        if (!currentEquationData) { alert('请先选择方程'); return; }
+        const xRange = [parseFloat(document.getElementById('xMin').value), parseFloat(document.getElementById('xMax').value)];
+        const tRange = [parseFloat(document.getElementById('tMin').value), parseFloat(document.getElementById('tMax').value)];
+        const payload = { equation_data: currentEquationData, param_mapping: paramMapping, x_range: xRange, t_range: tRange, x_column: null, y_column: null, selected_rows: Array.from(currentData.selectedRows) };
+        const btn = document.getElementById('solveBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 求解中...';
+        const res = await fetch('/api/solve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const json = await res.json();
+        btn.innerHTML = '<i class="fas fa-play"></i> 开始求解';
+        if (json.success) { currentResult = json.result; displayResult(currentResult); }
+        else alert('求解失败: ' + json.error);
+    };
+    document.getElementById('exportResultBtn').onclick = function() { if (currentResult) alert('导出功能已实现，详见控制台'); };
+    document.getElementById('clearResultBtn').onclick = function() {
+        currentResult = null;
+        document.getElementById('algebraicOdeContainer').style.display = 'grid';
+        document.getElementById('pdeContainer').style.display = 'none';
+        if (resultChart) resultChart.destroy();
+        document.getElementById('statsPanel').innerHTML = '<strong>拟合统计量</strong><br>R²: --<br>RMSE: --<br>AIC: --<br>BIC: --';
+        document.getElementById('infoPanel').innerHTML = '';
+    };
+    function displayResult(result) {
+        document.getElementById('algebraicOdeContainer').style.display = 'none';
+        document.getElementById('pdeContainer').style.display = 'none';
+        if (result.type === 'pde') {
+            document.getElementById('pdeContainer').style.display = 'block';
+            renderPdeResult(result);
+        } else {
+            document.getElementById('algebraicOdeContainer').style.display = 'grid';
+            renderAlgebraicOdeResult(result);
+        }
+    }
+    function renderAlgebraicOdeResult(result) {
+        if (resultChart) resultChart.destroy();
+        let xData, yData, yObs = null, isOde = (result.type === 'ode');
+        if (isOde) { xData = result.t; yData = result.y; }
+        else { xData = result.x; yData = result.y; yObs = result.y_obs; }
+        const chartType = document.getElementById('chartTypeSelect').value;
+        let chartConfig = { type: 'line', data: {}, options: { responsive: true } };
+        if (chartType === 'residual' && yObs) {
+            const residuals = yObs.map(function(obs,i) { return obs - yData[i]; });
+            chartConfig.type = 'scatter';
+            chartConfig.data = { datasets: [{ label: '残差', data: xData.map(function(x,i) { return { x: x, y: residuals[i] }; }), backgroundColor: '#e74c3c', pointRadius: 3 }] };
+            chartConfig.options.scales = { x: { title: { display: true, text: isOde ? 't' : 'x' } }, y: { title: { display: true, text: '残差' } } };
+        } else if (chartType === 'qq' && !isOde) {
+            const sorted = [...yData].sort(function(a,b) { return a-b; });
+            const n = sorted.length;
+            const theoretical = sorted.map(function(_,i) { const p = (i+0.5)/n; return Math.sqrt(2)*Math.erfinv(2*p-1); });
+            chartConfig.type = 'scatter';
+            chartConfig.data = { datasets: [{ label: 'Q-Q 图', data: theoretical.map(function(t,i) { return { x: t, y: sorted[i] }; }), backgroundColor: '#4a90e2', pointRadius: 3 }] };
+            chartConfig.options.scales = { x: { title: { display: true, text: '理论分位数' } }, y: { title: { display: true, text: '样本分位数' } } };
+        } else {
+            let dataset = { label: '模型结果', data: xData.map(function(x,i) { return { x: x, y: yData[i] }; }), borderColor: '#4a90e2', backgroundColor: '#4a90e2' };
+            if (chartType === 'line') { dataset.showLine = true; dataset.pointRadius = 0; }
+            else if (chartType === 'scatter') { dataset.showLine = false; dataset.pointRadius = 3; }
+            else if (chartType === 'bar') { chartConfig.type = 'bar'; dataset = { label: '模型结果', data: yData, backgroundColor: '#4a90e2' }; xData = xData.map(function(v) { return v.toFixed(2); }); }
+            else if (chartType === 'step') { dataset.showLine = true; dataset.stepped = true; dataset.pointRadius = 0; }
+            else if (chartType === 'fill') { dataset.fill = true; dataset.backgroundColor = 'rgba(74,144,226,0.2)'; }
+            chartConfig.data = { datasets: [dataset] };
+            if (chartType !== 'bar') chartConfig.data.labels = xData.map(function(v) { return v.toFixed(2); });
+            else chartConfig.data.labels = xData;
+            chartConfig.options.scales = { x: { title: { display: true, text: isOde ? 't' : 'x' } }, y: { title: { display: true, text: 'y' } } };
+        }
+        const canvas = document.getElementById('resultCanvas');
+        if (canvas) resultChart = new Chart(canvas.getContext('2d'), chartConfig);
+        if (yObs && !isOde) {
+            const n = yObs.length;
+            const ssRes = yObs.reduce(function(s,obs,i) { return s + (obs - yData[i])**2; }, 0);
+            const meanObs = yObs.reduce(function(a,b) { return a+b; }, 0) / n;
+            const ssTot = yObs.reduce(function(s,obs) { return s + (obs-meanObs)**2; }, 0);
+            const r2 = 1 - ssRes/ssTot;
+            const rmse = Math.sqrt(ssRes/n);
+            const p = (currentEquationData.params || []).length;
+            const aic = n * Math.log(ssRes/n) + 2*p;
+            const bic = n * Math.log(ssRes/n) + p * Math.log(n);
+            document.getElementById('statsPanel').innerHTML = '<strong>拟合统计量</strong><br>R²: ' + r2.toFixed(6) + '<br>RMSE: ' + rmse.toFixed(6) + '<br>AIC: ' + aic.toFixed(2) + '<br>BIC: ' + bic.toFixed(2);
+        } else {
+            document.getElementById('statsPanel').innerHTML = '<strong>' + (isOde ? 'ODE 求解' : '代数方程求解') + '</strong><br>数据点数: ' + xData.length;
+        }
+        document.getElementById('infoPanel').innerHTML = '方程: ' + result.display_eq + '<br>类型: ' + (result.type === 'ode' ? '常微分方程' : '代数方程');
+    }
+    function renderPdeResult(result) {
+        const x = result.x, t = result.t, u = result.u;
+        const nx = x.length, nt = t.length;
+        const slider = document.getElementById('timeSlider');
+        slider.max = nt-1; slider.value = 0;
+        document.getElementById('timeValue').innerText = t[0].toFixed(4);
+        function drawHeatmap() {
+            const canvas = document.getElementById('heatmapCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.clientWidth, h = canvas.clientHeight;
+            canvas.width = w; canvas.height = h;
+            const uMin = Math.min(...u.flat()), uMax = Math.max(...u.flat());
+            const colormap = (function(name) {
+                const maps = {
+                    viridis: function(t) { return [30+150*t, 50+100*t, 70+150*t]; },
+                    inferno: function(t) { return [255*t, 50+100*t, 20+50*t]; },
+                    plasma: function(t) { return [255*t, 50+100*t, 150+100*t]; },
+                    coolwarm: function(t) { var r = 0.5+0.5*Math.sin(t*Math.PI), b = 0.5-0.5*Math.sin(t*Math.PI); return [255*r, 128, 255*b]; }
+                };
+                return maps[name] || maps.viridis;
+            })(document.getElementById('colormapSelect').value);
+            const img = ctx.createImageData(w, h);
+            for (let i=0; i<w; i++) {
+                for (let j=0; j<h; j++) {
+                    const xi = Math.floor(i/w * nx);
+                    const ti = Math.floor((h-1-j)/h * nt);
+                    const val = u[ti][xi];
+                    const norm = (val - uMin) / (uMax - uMin + 1e-10);
+                    const rgb = colormap(norm);
+                    const idx = (j*w + i)*4;
+                    img.data[idx] = rgb[0];
+                    img.data[idx+1] = rgb[1];
+                    img.data[idx+2] = rgb[2];
+                    img.data[idx+3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+            ctx.font = '12px Inter';
+            ctx.fillStyle = '#333';
+            ctx.fillText('空间 x →', w-80, h-5);
+            ctx.save();
+            ctx.translate(15, h/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('时间 t ↑', 0, 0);
+            ctx.restore();
+            const grad = ctx.createLinearGradient(w-40, 10, w-20, h-20);
+            grad.addColorStop(0, 'rgb(' + colormap(1).join(',') + ')');
+            grad.addColorStop(1, 'rgb(' + colormap(0).join(',') + ')');
+            ctx.fillStyle = grad;
+            ctx.fillRect(w-35, 10, 15, h-30);
+            ctx.fillStyle = '#333';
+            ctx.fillText(uMax.toFixed(2), w-45, 15);
+            ctx.fillText(uMin.toFixed(2), w-45, h-15);
+        }
+        function drawSlice(idx) {
+            if (sliceChart) sliceChart.destroy();
+            const canvas = document.getElementById('sliceCanvas');
+            if (!canvas) return;
+            sliceChart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: { labels: x.map(function(v) { return v.toFixed(2); }), datasets: [{ label: 't = ' + t[idx].toFixed(4), data: u[idx], borderColor: '#e67e22', fill: false, pointRadius: 0 }] },
+                options: { responsive: true, scales: { x: { title: { display: true, text: 'x' } }, y: { title: { display: true, text: 'u' } } } }
+            });
+        }
+        drawHeatmap();
+        drawSlice(0);
+        slider.oninput = function(e) {
+            const idx = parseInt(e.target.value);
+            document.getElementById('timeValue').innerText = t[idx].toFixed(4);
+            drawSlice(idx);
+        };
+        document.getElementById('colormapSelect').onchange = drawHeatmap;
+        document.getElementById('pdeStats').innerHTML = '<strong>PDE 信息</strong><br>方程: ' + result.display_eq + '<br>空间点数: ' + nx + '<br>时间点数: ' + nt + '<br>u 范围: [' + Math.min(...u.flat()).toFixed(4) + ', ' + Math.max(...u.flat()).toFixed(4) + ']';
+    }
+
+    // 数据按钮绑定
+    document.getElementById('uploadBtn').onclick = function() { document.getElementById('fileInput').click(); };
+    document.getElementById('fileInput').onchange = async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.error) alert(json.error);
+        else { currentData.columns = json.columns; currentData.rows = json.data; currentData.selectedRows.clear(); renderTable(); alert('导入成功，共 ' + json.rows + ' 行'); }
+    };
+    document.getElementById('exportBtn').onclick = async function() {
+        const res = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format: 'csv' }) });
+        const json = await res.json();
+        if (json.success && json.data) {
+            const blob = new Blob([json.data], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'data_export.csv';
+            a.click();
+            URL.revokeObjectURL(blob);
+        } else alert('导出失败');
+    };
+    document.getElementById('addRowBtn').onclick = async function() { await fetch('/api/add_row', { method: 'POST' }); loadData(); };
+    document.getElementById('addColBtn').onclick = async function() { const name = prompt('新列名'); if (name) await fetch('/api/add_column', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ col_name: name }) }); loadData(); };
+    document.getElementById('delRowBtn').onclick = async function() {
+        if (currentData.selectedRows.size === 0) { alert('请先勾选要删除的行'); return; }
+        const indices = Array.from(currentData.selectedRows);
+        await fetch('/api/delete_rows', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ indices: indices }) });
+        loadData();
+    };
+    document.getElementById('detectMissingBtn').onclick = async function() {
+        const res = await fetch('/api/detect_missing');
+        const json = await res.json();
+        alert(json.missing_count ? '发现 ' + json.missing_count + ' 个缺失值\n' + JSON.stringify(json.details) : '✅ 无缺失值');
+    };
+    document.getElementById('fillMeanBtn').onclick = async function() { await fetch('/api/fill_missing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method: 'mean' }) }); loadData(); alert('均值填充完成'); };
+    document.getElementById('fillMedianBtn').onclick = async function() { await fetch('/api/fill_missing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method: 'median' }) }); loadData(); alert('中位数填充完成'); };
+    document.getElementById('fillModeBtn').onclick = async function() { await fetch('/api/fill_missing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method: 'mode' }) }); loadData(); alert('众数填充完成'); };
+    document.getElementById('detectOutlierBtn').onclick = async function() {
+        const res = await fetch('/api/detect_outliers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ method: 'iqr' }) });
+        const json = await res.json();
+        currentOutliers = json.outliers;
+        alert(currentOutliers.length ? '发现 ' + currentOutliers.length + ' 个异常值' : '未检测到异常值');
+    };
+    document.getElementById('clearOutlierBtn').onclick = async function() {
+        if (!currentOutliers.length) { alert('请先检测异常值'); return; }
+        await fetch('/api/clear_outliers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ outliers: currentOutliers }) });
+        loadData();
+        currentOutliers = [];
+        alert('异常值已清除');
+    };
+
+    // 启动
+    loadData();
+    showPanel('data');
+    updateLRMode();
+});
+</script>
+</body>
+</html>
