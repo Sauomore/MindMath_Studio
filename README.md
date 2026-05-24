@@ -128,19 +128,18 @@ pyinstaller --onefile --add-data "templates;templates" --hidden-import=flask_cor
 ## 📁 项目结构
 
 ```
-hajimi-modeling/
-├── app.py                 # Flask 后端主程序
-├── solver.py              # 代数/ODE/PDE 求解核心
-├── utils.py               # 预设方程库、表达式转换工具
-├── requirements.txt       # Python 依赖列表
+mindmath_web/
+├─ app.py                 # Flask后端主程序
+├─ solver.py              # 代数/常微分方程/偏微分方程求解核心
+├─ utils.py               # 预设方程库，表达式转换工具
+├─ requirements.txt       # Python 依赖列表
 ├── templates/
-│   └── index.html         # 前端单页面应用
-├──static/                 
-│   └──css/
-│   │    └──style.css
-│   └──js/
-│   │   └──script.js
-└── README.md              # 本文件
+│   └── index.html         # 前端单页应用
+└──static/                 
+    └──css/
+    │    └──style.css
+    └──js/
+         └──script.js
 ```
 
 ---
