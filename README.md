@@ -135,6 +135,11 @@ hajimi-modeling/
 ├── requirements.txt       # Python 依赖列表
 ├── templates/
 │   └── index.html         # 前端单页面应用
+├──static/                 
+│   └──css/
+│   │    └──style.css
+│   └──js/
+│   │   └──script.js
 └── README.md              # 本文件
 ```
 
