@@ -125,7 +125,7 @@ pyinstaller --onefile --add-data "templates;templates" --hidden-import=flask_cor
 
 ---
 
-## 📁 项目结构
+## 📁 项目结构(v1.1+)
 
 ```
 mindmath_web/
