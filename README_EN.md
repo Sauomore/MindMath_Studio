@@ -125,17 +125,21 @@ Since README cannot embed dynamic images directly, please visit [Project Wiki] o
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure(v1.1+)
 
 ```
-hajimi-modeling/
+mindmath_web/
 ├─ app.py                 # Flask backend main program
-├─ solver.py              # Algebra/ODE/PDE solving core
+├─ solver.py              # Algebraic/ODE/PDE solving core
 ├─ utils.py               # Preset equation library, expression conversion tool
 ├─ requirements.txt       # Python dependency list
 ├── templates/
 │   └── index.html         # Front-end single-page application
-└── README.md              # This file
+└──static/                 
+    └──css/
+    │    └──style.css
+    └──js/
+         └──script.js
 ```
 
 ---
